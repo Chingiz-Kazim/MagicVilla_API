@@ -1,0 +1,49 @@
+﻿@model MagicVilla_Web.Models.VM.VillaNoCreateVM
+
+<form asp-action="CreateVillaNo">
+    <br />
+    <div class="container p-3 border">
+        <h1 class="text-primary">Create Villa Number</h1>
+        <hr />
+        <div class="row">
+            <div asp-validation-summary="All" class="text-danger"></div>
+
+            <div class="col-2">
+                <label class="control-label pt-2" style="font-size:20px;" asp-for="VillaNo.VillaNo"></label>
+            </div>
+            <div class="col-10 pb-3">
+                <input class="form-control" asp-for="VillaNo.VillaNo" />
+                <span class="text-danger" asp-validation-for="VillaNo.VillaNo"></span>
+            </div>
+
+            <div class="col-2">
+                <label class="control-label pt-2" style="font-size:20px;" asp-for="VillaNo.VillaID"></label>
+            </div>
+            <div class="col-10 pb-3">
+                <select class="form-select" asp-for="VillaNo.VillaID" asp-items="@Model.VillaList">
+                    <option disabled selected>--Select Villa--</option>
+                </select>
+                <span class="text-danger" asp-validation-for="VillaNo.VillaID"></span>
+            </div>
+
+            <div class="col-2">
+                <label class="control-label pt-2" style="font-size:20px;" asp-for="VillaNo.SpecialDetails"></label>
+            </div>
+            <div class="col-10 pb-3">
+                <textarea class="form-control" rows="5" asp-for="VillaNo.SpecialDetails"></textarea>
+                <span class="text-danger" asp-validation-for="VillaNo.SpecialDetails"></span>
+            </div>
+
+            <div class="col-5 offset-2">
+                <a class="btn-primary btn form-control" asp-controller="VillaNo" asp-action="IndexVillaNo">Back to List</a>
+            </div>
+            <div class="col-5">
+                <input type="submit" value="Create" class="btn btn-success form-control" />
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
