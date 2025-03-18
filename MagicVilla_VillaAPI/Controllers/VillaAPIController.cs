@@ -31,7 +31,6 @@ public class VillaAPIController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -52,7 +51,6 @@ public class VillaAPIController : ControllerBase
         return _response;
     }
 
-    [Authorize(Roles = "admin")]
     [HttpGet("{id:int}", Name = "GetVilla")]
     [ProducesResponseType(200)]
     [ProducesResponseType(400)]
@@ -142,7 +140,7 @@ public class VillaAPIController : ControllerBase
         return _response;
     }
 
-    [Authorize(Roles = "CUSTOM")]
+    [Authorize(Roles = "admin")]
     [HttpDelete("{id:int}", Name = "DeleteVilla")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -178,6 +176,7 @@ public class VillaAPIController : ControllerBase
         return _response;
     }
 
+    [Authorize(Roles = "admin")]
     [HttpPut("{id:int}", Name = "UpdateVilla")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -218,6 +217,7 @@ public class VillaAPIController : ControllerBase
         return _response;
     }
 
+    [Authorize(Roles = "admin")]
     [HttpPatch("{id:int}", Name = "UpdatePartialVilla")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

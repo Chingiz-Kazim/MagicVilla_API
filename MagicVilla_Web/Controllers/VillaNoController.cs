@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
+using MagicVilla_Utility;
 using MagicVilla_Web.Models;
 using MagicVilla_Web.Models.Dto;
 using MagicVilla_Web.Models.VM;
 using MagicVilla_Web.Services.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Newtonsoft.Json;
@@ -25,7 +27,7 @@ public class VillaNoController : Controller
     {
         List<VillaNoDTO> list = new();
 
-        var response = await _villaNoService.GetAllAsync<APIResponse>();
+        var response = await _villaNoService.GetAllAsync<APIResponse>(HttpContext.Session.GetString(SD.SessionToken));
 
         if (response != null && response.IsSuccess)
         {
@@ -35,13 +37,14 @@ public class VillaNoController : Controller
         return View(list);
     }
 
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> CreateVillaNo()
     {
         //необходимо объяснение!                                                    //необходимо объяснение!
 
         VillaNoCreateVM villaNoVM = new();
 
-        var response = await _villaService.GetAllAsync<APIResponse>();
+        var response = await _villaService.GetAllAsync<APIResponse>(HttpContext.Session.GetString(SD.SessionToken));
 
         if (response != null && response.IsSuccess)
         {
@@ -55,13 +58,14 @@ public class VillaNoController : Controller
         return View(villaNoVM);
     }
 
+    [Authorize(Roles = "admin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateVillaNo(VillaNoCreateVM model)
     {
         if (ModelState.IsValid)
         {
-            var response = await _villaNoService.CreateAsync<APIResponse>(model.VillaNo);
+            var response = await _villaNoService.CreateAsync<APIResponse>(model.VillaNo, HttpContext.Session.GetString(SD.SessionToken));
 
             if (response != null && response.IsSuccess)
             {
@@ -76,7 +80,7 @@ public class VillaNoController : Controller
             }
         }
 
-        var resp = await _villaService.GetAllAsync<APIResponse>();
+        var resp = await _villaService.GetAllAsync<APIResponse>(HttpContext.Session.GetString(SD.SessionToken));
         if (resp != null && resp.IsSuccess)
         {
             model.VillaList = JsonConvert.DeserializeObject<List<VillaDTO>>(Convert.ToString(resp.Result)).Select(v => new SelectListItem
@@ -89,10 +93,11 @@ public class VillaNoController : Controller
         return View(model);
     }
 
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> UpdateVillaNo(int villaNo)
     {
         VillaNoUpdateVM villaNoVM = new();
-        var response = await _villaNoService.GetAsync<APIResponse>(villaNo);
+        var response = await _villaNoService.GetAsync<APIResponse>(villaNo, HttpContext.Session.GetString(SD.SessionToken));
 
         if (response != null && response.IsSuccess)
         {
@@ -100,7 +105,7 @@ public class VillaNoController : Controller
             villaNoVM.VillaNo = _mapper.Map<VillaNoUpdatedDTO>(model);
         }
 
-        response = await _villaService.GetAllAsync<APIResponse>();
+        response = await _villaService.GetAllAsync<APIResponse>(HttpContext.Session.GetString(SD.SessionToken));
 
         if (response != null && response.IsSuccess)
         {
@@ -116,13 +121,14 @@ public class VillaNoController : Controller
         return NotFound();
     }
 
+    [Authorize(Roles = "admin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateVillaNo(VillaNoUpdateVM model)
     {
         if (ModelState.IsValid)
         {
-            var response = await _villaNoService.UpdateAsync<APIResponse>(model.VillaNo);
+            var response = await _villaNoService.UpdateAsync<APIResponse>(model.VillaNo, HttpContext.Session.GetString(SD.SessionToken));
 
             if (response != null && response.IsSuccess)
             {
@@ -137,7 +143,7 @@ public class VillaNoController : Controller
             }
         }
 
-        var resp = await _villaService.GetAllAsync<APIResponse>();
+        var resp = await _villaService.GetAllAsync<APIResponse>(HttpContext.Session.GetString(SD.SessionToken));
         if (resp != null && resp.IsSuccess)
         {
             model.VillaList = JsonConvert.DeserializeObject<List<VillaDTO>>(Convert.ToString(resp.Result)).Select(v => new SelectListItem
@@ -150,10 +156,11 @@ public class VillaNoController : Controller
         return View(model);
     }
 
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> DeleteVillaNo(int villaNo)
     {
         VillaNoDeleteVM villaNoVM = new();
-        var response = await _villaNoService.GetAsync<APIResponse>(villaNo);
+        var response = await _villaNoService.GetAsync<APIResponse>(villaNo, HttpContext.Session.GetString(SD.SessionToken));
 
         if (response != null && response.IsSuccess)
         {
@@ -161,7 +168,7 @@ public class VillaNoController : Controller
             villaNoVM.VillaNo = model;
         }
 
-        response = await _villaService.GetAllAsync<APIResponse>();
+        response = await _villaService.GetAllAsync<APIResponse>(HttpContext.Session.GetString(SD.SessionToken));
 
         if (response != null && response.IsSuccess)
         {
@@ -177,11 +184,12 @@ public class VillaNoController : Controller
         return NotFound();
     }
 
+    [Authorize(Roles = "admin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteVillaNo(VillaNoDeleteVM model)
     {
-        var response = await _villaNoService.DeleteAsync<APIResponse>(model.VillaNo.VillaNo);
+        var response = await _villaNoService.DeleteAsync<APIResponse>(model.VillaNo.VillaNo, HttpContext.Session.GetString(SD.SessionToken));
 
         if (response != null && response.IsSuccess)
         {
