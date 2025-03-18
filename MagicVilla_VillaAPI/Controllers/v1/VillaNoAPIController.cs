@@ -14,10 +14,11 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 
-namespace MagicVilla_VillaAPI.Controllers;
+namespace MagicVilla_VillaAPI.Controllers.v1;
 
-[Route("api/VillaNoAPI")]
+[Route("api/v{version:apiVersion}/VillaNoAPI")]
 [ApiController]
+[ApiVersion("1.0")]
 public class VillaNoAPIController : ControllerBase
 {
     private readonly IVillaNoRepository _villaNoRepository;
@@ -33,13 +34,21 @@ public class VillaNoAPIController : ControllerBase
         _dbVilla = dbVilla;
     }
 
+
+    [HttpGet("GetString")]
+    public IEnumerable<string> Get()
+    {
+        return new string[] { "Binx", "Bonne" };
+    }
+
+    //[MapToApiVersion("1.0")]
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<APIResponse>> GetVillasNumber()
     {
         try
         {
-            IEnumerable<VillaNumber> villaList = await _villaNoRepository.GetAllAsync(includeProperties:"Villa");
+            IEnumerable<VillaNumber> villaList = await _villaNoRepository.GetAllAsync(includeProperties: "Villa");
             _response.Result = _mapper.Map<List<VillaNoDTO>>(villaList);
             _response.StatusCode = HttpStatusCode.OK;
             return Ok(_response);
@@ -52,6 +61,7 @@ public class VillaNoAPIController : ControllerBase
         return _response;
     }
 
+
     [HttpGet("{number:int}", Name = "GetVillaNumber")]
     [ProducesResponseType(200)]
     [ProducesResponseType(404)]
@@ -62,7 +72,7 @@ public class VillaNoAPIController : ControllerBase
         {
             if (number == 0)
             {
-                _response.StatusCode=HttpStatusCode.BadRequest;
+                _response.StatusCode = HttpStatusCode.BadRequest;
                 return BadRequest(_response);
             }
 
@@ -99,7 +109,7 @@ public class VillaNoAPIController : ControllerBase
                 ModelState.AddModelError("ErrorMessages", "Villa # already Exists!");
                 return BadRequest(ModelState);
             }
-            if (await _dbVilla.GetAsync(v=>v.Id == createDTO.VillaID) == null)
+            if (await _dbVilla.GetAsync(v => v.Id == createDTO.VillaID) == null)
             {
                 ModelState.AddModelError("ErrorMessages", "Villa ID is Invalid!");
                 return BadRequest(ModelState);

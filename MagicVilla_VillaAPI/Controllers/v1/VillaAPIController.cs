@@ -13,10 +13,11 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 
-namespace MagicVilla_VillaAPI.Controllers;
+namespace MagicVilla_VillaAPI.Controllers.v1;
 
-[Route("api/VillaAPI")]
+[Route("api/v{version:apiVersion}/VillaAPI")]
 [ApiController]
+[ApiVersion("1.0")]
 public class VillaAPIController : ControllerBase
 {
     private readonly IVillaRepository _villaRepository;
@@ -31,14 +32,28 @@ public class VillaAPIController : ControllerBase
     }
 
     [HttpGet]
+    [ResponseCache(CacheProfileName = "Default30")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<ActionResult<APIResponse>> GetVillas()
+    public async Task<ActionResult<APIResponse>> GetVillas([FromQuery(Name = "filterOccupancy")] int? occupancy, [FromQuery] string? search)
     {
         try
         {
-            IEnumerable<Villa> villaList = await _villaRepository.GetAllAsync();
+            IEnumerable<Villa> villaList;
+
+            if (occupancy > 0)
+            {
+                villaList = await _villaRepository.GetAllAsync(v => v.Occupancy == occupancy);
+            }
+            else
+            {
+                villaList = await _villaRepository.GetAllAsync();
+            }
+            if (!string.IsNullOrEmpty(search))
+            {
+                villaList = villaList.Where(v => v.Name.ToLower().Contains(search));
+            }
             _response.Result = _mapper.Map<List<VillaDTO>>(villaList);
             _response.StatusCode = HttpStatusCode.OK;
             return Ok(_response);
@@ -52,6 +67,7 @@ public class VillaAPIController : ControllerBase
     }
 
     [HttpGet("{id:int}", Name = "GetVilla")]
+    //[ResponseCache(Duration = 30)] [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
     [ProducesResponseType(200)]
     [ProducesResponseType(400)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -63,7 +79,7 @@ public class VillaAPIController : ControllerBase
         {
             if (id == 0)
             {
-                _response.StatusCode=HttpStatusCode.BadRequest;
+                _response.StatusCode = HttpStatusCode.BadRequest;
                 return BadRequest(_response);
             }
 
