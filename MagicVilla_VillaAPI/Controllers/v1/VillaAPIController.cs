@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace MagicVilla_VillaAPI.Controllers.v1;
@@ -36,7 +37,7 @@ public class VillaAPIController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<ActionResult<APIResponse>> GetVillas([FromQuery(Name = "filterOccupancy")] int? occupancy, [FromQuery] string? search)
+    public async Task<ActionResult<APIResponse>> GetVillas([FromQuery(Name = "filterOccupancy")] int? occupancy, [FromQuery] string? search, int pageSize = 0, int pageNumber = 1)
     {
         try
         {
@@ -44,16 +45,20 @@ public class VillaAPIController : ControllerBase
 
             if (occupancy > 0)
             {
-                villaList = await _villaRepository.GetAllAsync(v => v.Occupancy == occupancy);
+                villaList = await _villaRepository.GetAllAsync(v => v.Occupancy == occupancy, pageSize:pageSize, pageNumber:pageNumber);
             }
             else
             {
-                villaList = await _villaRepository.GetAllAsync();
+                villaList = await _villaRepository.GetAllAsync(pageSize: pageSize, pageNumber: pageNumber);
             }
             if (!string.IsNullOrEmpty(search))
             {
                 villaList = villaList.Where(v => v.Name.ToLower().Contains(search));
             }
+
+            Pagination pagination = new Pagination() { PageNumber = pageNumber, PageSize = pageSize};
+
+            Response.Headers.Add("X-Pagination", JsonSerializer.Serialize(pagination));
             _response.Result = _mapper.Map<List<VillaDTO>>(villaList);
             _response.StatusCode = HttpStatusCode.OK;
             return Ok(_response);
@@ -80,6 +85,8 @@ public class VillaAPIController : ControllerBase
             if (id == 0)
             {
                 _response.StatusCode = HttpStatusCode.BadRequest;
+                _response.IsSuccess = false;
+                _response.ErrorMessages.Add("'id' can't be 0");
                 return BadRequest(_response);
             }
 
@@ -87,6 +94,8 @@ public class VillaAPIController : ControllerBase
             if (villa == null)
             {
                 _response.StatusCode = HttpStatusCode.NotFound;
+                _response.IsSuccess = false;
+                _response.ErrorMessages.Add("Villa with this 'id' not found");
                 return NotFound(_response);
             }
 
@@ -116,6 +125,7 @@ public class VillaAPIController : ControllerBase
             if (await _villaRepository.GetAsync(v => v.Name.ToLower() == createDTO.Name.ToLower()) != null)
             {
                 ModelState.AddModelError("ErrorMessages", "Villa already Exists!");
+                _response.IsSuccess = false;
                 return BadRequest(ModelState);
             }
             if (createDTO == null)
@@ -169,12 +179,15 @@ public class VillaAPIController : ControllerBase
         {
             if (id == 0)
             {
+                _response.IsSuccess = false;
                 return BadRequest();
             }
 
             var villa = await _villaRepository.GetAsync(v => v.Id == id);
             if (villa == null)
             {
+                _response.IsSuccess = false;
+                _response.ErrorMessages.Add("Villa with this 'id' not found");
                 return NotFound();
             }
 
@@ -202,6 +215,7 @@ public class VillaAPIController : ControllerBase
         {
             if (updateDTO == null || id != updateDTO.Id)
             {
+                _response.IsSuccess = false;
                 return BadRequest();
             }
 
