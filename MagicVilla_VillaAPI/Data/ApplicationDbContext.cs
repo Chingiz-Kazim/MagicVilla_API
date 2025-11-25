@@ -32,7 +32,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                 Rate = 200,
                 Sqft = 550,
                 Amenity = "",
-                CreatedDate = DateTime.Now,
+                CreatedDate = new DateTime(2025, 11, 25)
             },
               new Villa
               {
@@ -44,7 +44,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                   Rate = 300,
                   Sqft = 550,
                   Amenity = "",
-                  CreatedDate = DateTime.Now,
+                  CreatedDate = new DateTime(2025, 11, 25)
               },
               new Villa
               {
@@ -56,7 +56,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                   Rate = 400,
                   Sqft = 750,
                   Amenity = "",
-                  CreatedDate = DateTime.Now,
+                  CreatedDate = new DateTime(2025, 11, 25),
               },
               new Villa
               {
@@ -68,7 +68,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                   Rate = 550,
                   Sqft = 900,
                   Amenity = "",
-                  CreatedDate = DateTime.Now,
+                  CreatedDate = new DateTime(2025, 11, 25),
               },
               new Villa
               {
@@ -80,7 +80,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                   Rate = 600,
                   Sqft = 1100,
                   Amenity = "",
-                  CreatedDate = DateTime.Now,
+                  CreatedDate = new DateTime(2025, 11, 25),
               }
             );
     }

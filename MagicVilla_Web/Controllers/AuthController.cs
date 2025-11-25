@@ -40,6 +40,8 @@ namespace MagicVilla_Web.Controllers
                 var handler = new JwtSecurityTokenHandler();
                 var jwt = handler.ReadJwtToken(model.Token);
 
+                //это для того что бы сохранить куки аутентификации, чтобы не приходилось каждый раз вводить логин и пароль
+                //при случае когда простой пользователь обращается к защищенному ресурсу
                 var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
                 identity.AddClaim(new Claim(ClaimTypes.Name, jwt.Claims.FirstOrDefault(j => j.Type == "unique_name").Value));
                 identity.AddClaim(new Claim(ClaimTypes.Role, jwt.Claims.FirstOrDefault(j => j.Type == "role").Value));
