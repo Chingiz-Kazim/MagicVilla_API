@@ -19,6 +19,11 @@
                 <input type="text" class="form-control" asp-for="Password" placeholder="Password..." />
             </div>
             <div class="col-6 offset-3 pb-2">
+                <select asp-for="Role" class="form-select" asp-items="@ViewBag.RoleList">
+                    <option disabled selected value="">-- Select Role --</option>
+                </select>
+            </div>
+            <div class="col-6 offset-3 pb-2">
                 <button type="submit" class="form-control btn-success" value="Submit">Register</button>
             </div>
         </div>
