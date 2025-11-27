@@ -40,7 +40,7 @@ namespace MagicVilla_VillaAPI.Repository
             return false;
         }
 
-        public async Task<LoginResponseDTO> Login(LoginRequestDTO loginRequestDTO)
+        public async Task<TokenDTO> Login(LoginRequestDTO loginRequestDTO)
         {
             var user = _db.ApplicationUsers
                 .FirstOrDefault(u => u.UserName.ToLower() == loginRequestDTO.UserName.ToLower());
@@ -50,37 +50,19 @@ namespace MagicVilla_VillaAPI.Repository
 
             if (user == null || isValid == false)
             {
-                return new LoginResponseDTO()
+                return new TokenDTO()
                 {
-                    Token = "",
-                    User = null
+                    AccessToken = ""
                 };
             }
 
-            //if user was found generate JWT Token
-            var roles = await _userManager.GetRolesAsync(user);
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(secretKey);
+            var accessToken = await GetAccessToken(user);
 
-            var tokenDescriptor = new SecurityTokenDescriptor
+            TokenDTO tokenDto = new TokenDTO()
             {
-                Subject = new ClaimsIdentity(new Claim[]
-                {
-                    new Claim(ClaimTypes.Name, user.UserName.ToString()),
-                    new Claim(ClaimTypes.Role, roles.FirstOrDefault())
-                }),
-                Expires = DateTime.UtcNow.AddDays(7),
-                SigningCredentials = new(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                AccessToken = accessToken
             };
-
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            LoginResponseDTO loginResponseDTO = new LoginResponseDTO()
-            {
-                Token = tokenHandler.WriteToken(token),
-                User = _mapper.Map<UserDTO>(user),
-
-            };
-            return loginResponseDTO;
+            return tokenDto;
         }
 
         public async Task<UserDTO> Register(RegistrationRequestDTO registerationRequestDTO)
@@ -115,6 +97,29 @@ namespace MagicVilla_VillaAPI.Repository
             }
 
             return new UserDTO();
+        }
+
+        private async Task<string> GetAccessToken(ApplicationUser user)
+        {
+            //if user was found generate JWT Token
+            var roles = await _userManager.GetRolesAsync(user);
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(secretKey);
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new Claim[]
+                {
+                    new Claim(ClaimTypes.Name, user.UserName.ToString()),
+                    new Claim(ClaimTypes.Role, roles.FirstOrDefault())
+                }),
+                Expires = DateTime.UtcNow.AddDays(7),
+                SigningCredentials = new(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            var tokenString = tokenHandler.WriteToken(token);
+            return tokenString;
         }
     }
 }

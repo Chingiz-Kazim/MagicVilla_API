@@ -5,6 +5,7 @@ using MagicVilla_VillaAPI.Models.Dto;
 using MagicVilla_VillaAPI.Repository.IRepository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -33,7 +34,6 @@ public class VillaAPIController : ControllerBase
     }
 
     [HttpGet]
-    [ResponseCache(CacheProfileName = "Default30")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -118,7 +118,7 @@ public class VillaAPIController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<APIResponse>> CreateVilla([FromBody] VillaCreateDTO createDTO)
+    public async Task<ActionResult<APIResponse>> CreateVilla([FromForm] VillaCreateDTO createDTO)
     {
         try
         {
@@ -132,12 +132,12 @@ public class VillaAPIController : ControllerBase
             {
                 return BadRequest(createDTO);
             }
+            #region превращение_вручную
             //if(villaDTO.Id > 0)
             //{
             //    return StatusCode(StatusCodes.Status500InternalServerError);
             //}
 
-            Villa model = _mapper.Map<Villa>(createDTO);
             //автоматически преобразует вместо того что было ниже
             //Villa model = new Villa()
             //{
@@ -150,9 +150,41 @@ public class VillaAPIController : ControllerBase
             //    Sqft = createDTO.Sqft,
             //    CreatedDate = DateTime.Now
             //};
+            #endregion
+
+            Villa model = _mapper.Map<Villa>(createDTO);
 
             await _villaRepository.CreateAsync(model);
 
+            if (createDTO.Image != null)
+            {
+                string fileName = model.Id + Path.GetExtension(createDTO.Image.FileName);
+                string filePath = @"wwwroot/ProductImage/" + fileName;
+
+                var directoryLocation = Path.Combine(Directory.GetCurrentDirectory(), filePath);
+
+                FileInfo file = new FileInfo(directoryLocation);
+
+                if (file.Exists) 
+                {
+                    file.Delete();
+                }
+
+                using (var fielStream = new FileStream(directoryLocation, FileMode.Create))
+                {
+                    createDTO.Image.CopyTo(fielStream);
+                }
+
+                var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.Value}{HttpContext.Request.PathBase.Value}";
+                model.ImageURL = baseUrl + "/ProductImage/" + fileName;
+                model.ImageLocalPath = filePath;
+            }
+            else
+            {
+                model.ImageURL = "https://placehold.co/600x400";
+            }
+
+            await _villaRepository.UpdateAsync(model);
             _response.Result = _mapper.Map<VillaDTO>(model);
             _response.StatusCode = HttpStatusCode.Created;
 
@@ -191,6 +223,17 @@ public class VillaAPIController : ControllerBase
                 return NotFound();
             }
 
+            if (!string.IsNullOrEmpty(villa.ImageLocalPath))
+            {
+                var oldFilePathDirectory = Path.Combine(Directory.GetCurrentDirectory(), villa.ImageLocalPath);
+                FileInfo file = new FileInfo(oldFilePathDirectory);
+
+                if (file.Exists)
+                {
+                    file.Delete();
+                }
+            }
+
             await _villaRepository.RemoveAsync(villa);
 
             _response.StatusCode = HttpStatusCode.NoContent;
@@ -209,7 +252,7 @@ public class VillaAPIController : ControllerBase
     [HttpPut("{id:int}", Name = "UpdateVilla")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<APIResponse>> UpdateVilla(int id, [FromBody] VillaUpdateDTO updateDTO)
+    public async Task<ActionResult<APIResponse>> UpdateVilla(int id, [FromForm] VillaUpdateDTO updateDTO)
     {
         try
         {
@@ -220,6 +263,41 @@ public class VillaAPIController : ControllerBase
             }
 
             Villa model = _mapper.Map<Villa>(updateDTO);
+
+            if (updateDTO.Image != null)
+            {
+                if (!string.IsNullOrEmpty(model.ImageLocalPath))
+                {
+                    var oldFilePathDirectory = Path.Combine(Directory.GetCurrentDirectory(), model.ImageLocalPath);
+                    FileInfo file = new FileInfo(oldFilePathDirectory);
+
+                    if (file.Exists)
+                    {
+                        file.Delete();
+                    }
+                }
+
+                string fileName = updateDTO.Id + Path.GetExtension(updateDTO.Image.FileName);
+                string filePath = @"wwwroot/ProductImage/" + fileName;
+
+                var directoryLocation = Path.Combine(Directory.GetCurrentDirectory(), filePath);
+
+
+                using (var fielStream = new FileStream(directoryLocation, FileMode.Create))
+                {
+                    updateDTO.Image.CopyTo(fielStream);
+                }
+
+                var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.Value}{HttpContext.Request.PathBase.Value}";
+                model.ImageURL = baseUrl + "/ProductImage/" + fileName;
+                model.ImageLocalPath = filePath;
+            }
+            else
+            {
+                model.ImageURL = "https://placehold.co/600x400";
+            }
+
+            #region преобразование_вручную
             //автоматически преобразует вместо того что было ниже
             //Villa model = new Villa()
             //{
@@ -233,6 +311,7 @@ public class VillaAPIController : ControllerBase
             //    Sqft = updateDTO.Sqft,
             //    UpdatedDate = DateTime.Now
             //};
+            #endregion
 
             await _villaRepository.UpdateAsync(model);
             _response.StatusCode = HttpStatusCode.NoContent;

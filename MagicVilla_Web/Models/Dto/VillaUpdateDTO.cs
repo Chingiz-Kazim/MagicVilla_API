@@ -17,7 +17,8 @@ public class VillaUpdateDTO
     public int Occupancy { get; set; }
     [Required]
     public int Sqft { get; set; }
-    [Required]
-    public string ImageURL { get; set; }
+    public string? ImageLocalPath { get; set; }
+    public string? ImageURL { get; set; }
+    public IFormFile? Image { get; set; }
     public string Amenity { get; set; }
 }

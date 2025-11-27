@@ -26,7 +26,7 @@ public class VillaController : Controller
     {
         List<VillaDTO> list = new();
 
-        var response = await _villaService.GetAllAsync<APIResponse>(HttpContext.Session.GetString(SD.SessionToken));
+        var response = await _villaService.GetAllAsync<APIResponse>();
 
         if (response != null && response.IsSuccess)
         {
@@ -49,7 +49,7 @@ public class VillaController : Controller
     {
         if (ModelState.IsValid)
         {
-            var response = await _villaService.CreateAsync<APIResponse>(model, HttpContext.Session.GetString(SD.SessionToken));
+            var response = await _villaService.CreateAsync<APIResponse>(model);
 
             if (response != null && response.IsSuccess)
             {
@@ -64,7 +64,7 @@ public class VillaController : Controller
     [Authorize(Roles = "admin")]
     public async Task<IActionResult> UpdateVilla(int id)
     {
-        var response = await _villaService.GetAsync<APIResponse>(id, HttpContext.Session.GetString(SD.SessionToken));
+        var response = await _villaService.GetAsync<APIResponse>(id);
 
         if (response != null && response.IsSuccess)
         {
@@ -81,7 +81,7 @@ public class VillaController : Controller
     {
         if (ModelState.IsValid)
         {
-            var response = await _villaService.UpdateAsync<APIResponse>(model, HttpContext.Session.GetString(SD.SessionToken));
+            var response = await _villaService.UpdateAsync<APIResponse>(model);
 
             if (response != null && response.IsSuccess)
             {
@@ -96,7 +96,7 @@ public class VillaController : Controller
     [Authorize(Roles = "admin")]
     public async Task<IActionResult> DeleteVilla(int id)
     {
-        var response = await _villaService.GetAsync<APIResponse>(id, HttpContext.Session.GetString(SD.SessionToken));
+        var response = await _villaService.GetAsync<APIResponse>(id);
 
         if (response != null && response.IsSuccess)
         {
@@ -111,7 +111,7 @@ public class VillaController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteVilla(VillaDTO model)
     {
-        var response = await _villaService.DeleteAsync<APIResponse>(model.Id, HttpContext.Session.GetString(SD.SessionToken));
+        var response = await _villaService.DeleteAsync<APIResponse>(model.Id);
 
         if (response != null && response.IsSuccess)
         {
